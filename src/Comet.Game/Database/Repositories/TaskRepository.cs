@@ -22,7 +22,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Comet.Game.Database.Repositories
 {
@@ -31,7 +32,7 @@ namespace Comet.Game.Database.Repositories
         public static async Task<List<DbTask>> GetAsync()
         {
             await using var db = new ServerDbContext();
-            return db.Tasks.ToList();
+            return await db.Tasks.ToListAsync();
         }
     }
 }

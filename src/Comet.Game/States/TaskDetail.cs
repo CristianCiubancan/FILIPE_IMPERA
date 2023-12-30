@@ -25,7 +25,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 
 #endregion

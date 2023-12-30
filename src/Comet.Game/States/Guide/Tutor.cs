@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States.Syndicates;
@@ -49,7 +49,7 @@ namespace Comet.Game.States.Guide
             var guide = new Tutor
             {
                 m_tutor = tutor,
-                m_access = await DbTutorContributions.GetGuideAsync(tutor.StudentId)
+                m_access = await TutorContributionRepository.GetGuideAsync(tutor.StudentId)
             };
             guide.m_access ??= new DbTutorContributions
             {
@@ -96,7 +96,7 @@ namespace Comet.Game.States.Guide
             }
             else
             {
-                DbTutorAccess tutorAccess = await DbTutorAccess.GetAsync(m_access.TutorIdentity);
+                DbTutorAccess tutorAccess = await TutorAccessRepository.GetAsync(m_access.TutorIdentity);
                 tutorAccess ??= new DbTutorAccess
                 {
                     GuideIdentity = GuideIdentity
@@ -118,7 +118,7 @@ namespace Comet.Game.States.Guide
             }
             else
             {
-                DbTutorAccess tutorAccess = await DbTutorAccess.GetAsync(m_access.TutorIdentity);
+                DbTutorAccess tutorAccess = await TutorAccessRepository.GetAsync(m_access.TutorIdentity);
                 tutorAccess ??= new DbTutorAccess
                 {
                     GuideIdentity = GuideIdentity
@@ -140,7 +140,7 @@ namespace Comet.Game.States.Guide
             }
             else
             {
-                DbTutorAccess tutorAccess = await DbTutorAccess.GetAsync(m_access.TutorIdentity);
+                DbTutorAccess tutorAccess = await TutorAccessRepository.GetAsync(m_access.TutorIdentity);
                 tutorAccess ??= new DbTutorAccess
                 {
                     GuideIdentity = GuideIdentity

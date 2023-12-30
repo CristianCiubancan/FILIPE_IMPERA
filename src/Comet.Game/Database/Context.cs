@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Shared;
 using Microsoft.EntityFrameworkCore;
 

@@ -23,7 +23,8 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -34,7 +35,7 @@ namespace Comet.Game.Database.Repositories
         public static async Task<DbPortal> GetAsync(uint idMap, uint idx)
         {
             await using ServerDbContext context = new ServerDbContext();
-            return context.Portal.FirstOrDefault(x => x.MapId == idMap && x.PortalIndex == idx);
+            return await context.Portal.FirstOrDefaultAsync(x => x.MapId == idMap && x.PortalIndex == idx);
         }
     }
 }

@@ -25,8 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Shared;
+using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -37,7 +38,7 @@ namespace Comet.Game.Database.Repositories
         public static async Task<List<DbSyndicateAttr>> GetAsync(uint idSyn)
         {
             await using var db = new ServerDbContext();
-            return db.SyndicatesAttr.Where(x => x.SynId == idSyn).ToList();
+            return await db.SyndicatesAttr.Where(x => x.SynId == idSyn).ToListAsync();
         }
 
         public static async Task<bool> SaveAsync(DbSyndicateAttr entity)

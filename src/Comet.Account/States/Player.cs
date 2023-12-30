@@ -1,4 +1,4 @@
-﻿using Comet.Account.Database.Models;
+﻿using Comet.Database.Entities;
 
 namespace Comet.Account.States
 {

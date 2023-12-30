@@ -24,7 +24,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Comet.Game.Database.Repositories;
 using Comet.Game.States;
 using Comet.Network.Packets;
 
@@ -68,7 +69,7 @@ namespace Comet.Game.Packets
 
         public override async Task ProcessAsync(Client client)
         {
-            var rank = await DbArenic.GetSeasonRankAsync(DateTime.Now.AddDays(-1));
+            var rank = await ArenicRepository.GetSeasonRankAsync(DateTime.Now.AddDays(-1));
             ushort pos = 1;
             foreach (var obj in rank)
             {

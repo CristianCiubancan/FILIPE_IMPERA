@@ -26,11 +26,12 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.States;
 using Comet.Game.States.Events;
 using Comet.Shared;
 using Comet.Shared.Comet.Shared;
+using Comet.Game.Database.Repositories;
 
 #endregion
 
@@ -95,7 +96,7 @@ namespace Comet.Game.World.Threading
             ArenaQualifier qualifier = Kernel.EventThread.GetEvent<ArenaQualifier>();
 
             uint today = uint.Parse(DateTime.Now.ToString("yyyyMMdd"));
-            var users = await DbCharacter.GetDailyResetAsync();
+            var users = await CharactersRepository.GetDailyResetAsync();
             for (int i = users.Count - 1; i >= 0; i--)
             {
                 try

@@ -25,7 +25,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Comet.Core;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Comet.Game.Database.Repositories;
 using Comet.Game.States;
 
 #endregion
@@ -38,7 +39,7 @@ namespace Comet.Game.World.Managers
 
         public async Task<bool> InitializeAsync()
         {
-            var list = await DbMineRate.GetAsync();
+            var list = await MineRateRepository.GetAsync();
             foreach (var db in list)
             {
                 MineDictionary dict;

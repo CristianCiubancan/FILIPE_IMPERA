@@ -29,7 +29,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core.Mathematics;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States;
@@ -203,7 +203,7 @@ namespace Comet.Game.World.Maps
                 });
             }
 
-            m_regions = await DbRegion.GetAsync(Identity);
+            m_regions = await RegionRepository.GetAsync(Identity);
 
             Partition = (int) Kernel.Services.Processor.SelectPartition();
             return true;
@@ -211,7 +211,7 @@ namespace Comet.Game.World.Maps
 
         public async Task LoadTrapsAsync()
         {
-            foreach (var dbTrap in (await DbTrap.GetAsync()).Where(x => x.MapId == Identity))
+            foreach (var dbTrap in (await TrapRepository.GetAsync()).Where(x => x.MapId == Identity))
             {
                 MapTrap trap = new MapTrap(dbTrap);
                 if (!await trap.InitializeAsync())

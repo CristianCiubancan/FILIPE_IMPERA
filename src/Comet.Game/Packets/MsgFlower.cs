@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.States;
 using Comet.Game.States.Items;
 using Comet.Network.Packets;

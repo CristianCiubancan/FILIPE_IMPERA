@@ -27,7 +27,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Comet.Account.Database;
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Comet.Account.Database.Repositories;
 using Comet.Account.Threading;
 using Comet.Shared;

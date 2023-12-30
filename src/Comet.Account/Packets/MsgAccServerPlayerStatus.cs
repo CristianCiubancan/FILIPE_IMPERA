@@ -1,4 +1,4 @@
-﻿using Comet.Account.Database.Models;
+﻿using Comet.Database.Entities;
 using Comet.Account.Database.Repositories;
 using Comet.Account.States;
 using Comet.Network.Packets.Internal;

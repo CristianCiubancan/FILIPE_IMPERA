@@ -60,8 +60,8 @@ namespace Comet.Account.Packets
 
             client.Account.MacAddress = MacAddress;
             await BaseRepository.SaveAsync(client.Account);
-
-            await client.Realm.Server.SendAsync(this);
+            var server = client.Realm.GetServer<GameServer>();
+            await server.SendAsync(this);
         }
     }
 }

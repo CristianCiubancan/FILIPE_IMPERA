@@ -26,7 +26,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Utilities.Encoders;
 

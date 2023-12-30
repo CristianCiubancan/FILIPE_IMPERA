@@ -1,10 +1,11 @@
 ﻿using Comet.Account.Database;
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Comet.Account.States;
 using Comet.Network.Packets.Internal;
 using Comet.Shared;
 using System.Linq;
 using System.Threading.Tasks;
+using Comet.Account.Database.Repositories;
 
 namespace Comet.Account.Packets
 {
@@ -27,7 +28,7 @@ namespace Comet.Account.Packets
 
             foreach (var info in Data)
             {
-                DbRecordUser user = await DbRecordUser.GetByIdAsync(info.Identity, realm.RealmID);
+                DbRecordUser user = await RecordUserRepository.GetByIdAsync(info.Identity, realm.RealmID);
                 if (user == null)
                     user = new DbRecordUser();
 

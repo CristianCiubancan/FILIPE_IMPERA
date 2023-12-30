@@ -24,7 +24,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -35,7 +36,7 @@ namespace Comet.Game.Database.Repositories
         public static async Task<List<DbPassway>> GetAsync(uint idMap)
         {
             await using ServerDbContext context = new ServerDbContext();
-            return context.Passway.Where(x => x.MapId == idMap).ToList();
+            return await context.Passway.Where(x => x.MapId == idMap).ToListAsync();
         }
     }
 }

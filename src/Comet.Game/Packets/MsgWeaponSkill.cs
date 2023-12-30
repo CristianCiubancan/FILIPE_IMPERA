@@ -21,7 +21,7 @@
 
 #region References
 
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.States;
 using Comet.Network.Packets;
 

@@ -1,5 +1,5 @@
 ﻿using Comet.Account.Database;
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Comet.Account.States;
 using Comet.Network.Packets.Internal;
 using System;

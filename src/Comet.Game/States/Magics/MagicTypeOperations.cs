@@ -22,7 +22,7 @@
 #region References
 
 using System.Collections.Generic;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 
 #endregion
 

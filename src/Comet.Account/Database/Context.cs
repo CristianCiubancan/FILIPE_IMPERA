@@ -21,7 +21,7 @@
 
 #region References
 
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 #endregion

@@ -29,7 +29,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Internal;
 using Comet.Game.Packets;
 using Comet.Game.States.Items;

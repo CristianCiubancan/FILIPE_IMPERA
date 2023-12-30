@@ -26,7 +26,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Comet.Game.Database.Repositories;
 using Comet.Game.States.Families;
 
 #endregion
@@ -40,7 +41,7 @@ namespace Comet.Game.World.Managers
 
         public async Task<bool> InitializeAsync()
         {
-            var dbFamilies = await DbFamily.GetAsync();
+            var dbFamilies = await FamilyRepository.GetAsync();
             foreach (var dbFamily in dbFamilies)
             {
                 var family = await Family.CreateAsync(dbFamily);
@@ -53,7 +54,7 @@ namespace Comet.Game.World.Managers
                 family.LoadRelations();
             }
 
-            foreach (var limit in await DbFamilyBattleEffectShareLimit.GetAsync())
+            foreach (var limit in await FamilyBattleEffectShareLimitRepository.GetAsync())
             {
                 if (!m_familyBpLimit.ContainsKey(limit.Identity))
                     m_familyBpLimit.TryAdd(limit.Identity, limit);

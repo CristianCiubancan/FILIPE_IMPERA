@@ -24,7 +24,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Comet.Game.Database.Repositories;
 using Comet.Game.States;
 using Comet.Network.Packets;
 
@@ -79,7 +80,7 @@ namespace Comet.Game.Packets
             {
                 case QueryRankType.QualifierRank:
                     {
-                        List<DbArenic> players = await DbArenic.GetRankAsync(page * 10, 10);
+                        List<DbArenic> players = await ArenicRepository.GetRankAsync(page * 10, 10);
                         int rank = page * 10;
 
                         foreach (var player in players)
@@ -95,12 +96,12 @@ namespace Comet.Game.Packets
                                 Unknown = (int)player.User.Identity
                             });
                         }
-                        RankingNum = await DbArenic.GetRankCountAsync();
+                        RankingNum = await ArenicRepository.GetRankCountAsync();
                         break;
                     }
                 case QueryRankType.HonorHistory:
                     {
-                        List<DbCharacter> players = await DbCharacter.GetHonorRankAsync(page * 10, 10);
+                        List<DbCharacter> players = await CharactersRepository.GetHonorRankAsync(page * 10, 10);
                         int rank = (page * 10) + 1;
                         foreach (var player in players)
                         {
@@ -115,7 +116,7 @@ namespace Comet.Game.Packets
                                 Unknown = 0
                             });
                         }
-                        RankingNum = await DbCharacter.GetHonorRankCountAsync();
+                        RankingNum = await CharactersRepository.GetHonorRankCountAsync();
                         break;
                     }
             }

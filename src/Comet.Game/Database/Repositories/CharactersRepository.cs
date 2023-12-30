@@ -21,9 +21,11 @@
 
 #region References
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 #endregion
@@ -95,6 +97,64 @@ namespace Comet.Game.Database.Repositories
             await using var db = new ServerDbContext();
             db.Characters.Add(character);
             await db.SaveChangesAsync();
+        }
+
+        public static async Task<List<DbCharacter>> GetDailyResetAsync()
+        {
+            try
+            {
+                uint now = uint.Parse(DateTime.Now.ToString("yyyyMMdd"));
+                await using var ctx = new ServerDbContext();
+                return await ctx
+                    .Characters
+                    .Where(x => x.Identity > 1000000
+                    && x.Registered != null
+                    && x.Registered.Value.Date != DateTime.Now.Date
+                    && x.DayResetDate != now).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // await Log.WriteLogAsync(LogLevel.Exception, ex.ToString());
+                Console.WriteLine(ex.ToString());
+                return new List<DbCharacter>();
+            }
+        }
+
+        public static async Task<List<DbCharacter>> GetAthletePointRankAsync(int from, int limit)
+        {
+            await using var ctx = new ServerDbContext();
+            return await ctx.Characters
+                .Where(x => x.AthletePoint > 0)
+                .OrderByDescending(x => x.AthletePoint)
+                .ThenByDescending(x => x.AthleteDayWins)
+                .ThenBy(x => x.AthleteDayLoses)
+                .Skip(from)
+                .Take(limit)
+                .ToListAsync();
+        }
+
+        public static async Task<List<DbCharacter>> GetHonorRankAsync(int from, int limit)
+        {
+            await using var ctx = new ServerDbContext();
+            return await ctx.Characters
+                .Where(x => x.AthleteHistoryHonorPoints > 0)
+                .OrderByDescending(x => x.AthleteHistoryHonorPoints)
+                .ThenByDescending(x => x.AthleteHistoryWins)
+                .ThenBy(x => x.AthleteHistoryLoses)
+                .Skip(from)
+                .Take(limit)
+                .ToListAsync();
+        }
+
+        public static async Task<int> GetHonorRankCountAsync()
+        {
+            await using var ctx = new ServerDbContext();
+            return await ctx.Characters
+                .Where(x => x.AthleteHistoryHonorPoints > 0)
+                .OrderByDescending(x => x.AthleteHistoryHonorPoints)
+                .ThenByDescending(x => x.AthleteHistoryWins)
+                .ThenBy(x => x.AthleteHistoryLoses)
+                .CountAsync();
         }
     }
 }

@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Internal;
 using Comet.Game.Packets;
@@ -104,20 +104,20 @@ namespace Comet.Game.World.Managers
                 m_magicOps.Add(new MagicTypeOp(dbOp));
             }
 
-            foreach (var magic in await DbMonsterMagic.GetAsync())
+            foreach (var magic in await MonsterMagicRepository.GetAsync())
             {
                 if (!m_dicMonsterMagics.ContainsKey(magic.OwnerIdentity))
                     m_dicMonsterMagics.TryAdd(magic.OwnerIdentity, new List<DbMonsterMagic>());
                 m_dicMonsterMagics[magic.OwnerIdentity].Add(magic);
             }
 
-            m_superman = (await DbSuperman.GetAsync()).ToDictionary(superman => superman.UserIdentity);
+            m_superman = (await SupermanRepository.GetAsync()).ToDictionary(superman => superman.UserIdentity);
 
-            m_disdains.AddRange(await DbDisdain.GetAsync());
+            m_disdains.AddRange(await DisdainRepository.GetAsync());
 
-            m_tutorType.AddRange(await DbTutorType.GetAsync());
+            m_tutorType.AddRange(await TutorTypeRepository.GetAsync());
 
-            m_tutorBattleLimitTypes.AddRange(await DbTutorBattleLimitType.GetAsync());
+            m_tutorBattleLimitTypes.AddRange(await TutorBattleLimitTypeRepository.GetAsync());
 
             m_userUpdate.Update();
         }

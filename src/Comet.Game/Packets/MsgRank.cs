@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.States;
 using Comet.Game.World.Managers;
 using Comet.Network.Packets;

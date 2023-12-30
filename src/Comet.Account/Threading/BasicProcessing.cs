@@ -1,4 +1,5 @@
 ﻿using Comet.Account.Packets;
+using Comet.Account.States;
 using Comet.Core;
 using Comet.Shared.Comet.Shared;
 using System;
@@ -34,7 +35,8 @@ namespace Comet.Account.Threading
                 {
                     if (realm.Server != null)
                     {
-                        await realm.Server.SendAsync(new MsgAccServerPing());
+                        var server = realm.GetServer<GameServer>();
+                        await server.SendAsync(new MsgAccServerPing());
                     }
                 }
             }

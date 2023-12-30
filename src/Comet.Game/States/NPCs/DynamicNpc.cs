@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Core.Mathematics;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Game.States.BaseEntities;
 using Comet.Game.States.Syndicates;

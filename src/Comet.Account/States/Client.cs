@@ -23,7 +23,7 @@
 
 using System;
 using System.Net.Sockets;
-using Comet.Account.Database.Models;
+using Comet.Database.Entities;
 using Comet.Network.Security;
 using Comet.Network.Sockets;
 

@@ -24,7 +24,7 @@
 using System;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.States;
 using Comet.Game.States.Items;
@@ -207,7 +207,7 @@ namespace Comet.Game.Packets
 
         private async Task GenerateInitialEquipmentAsync(DbCharacter user)
         {
-            DbNewbieInfo info = await DbNewbieInfo.GetAsync(user.Profession);
+            DbNewbieInfo info = await NewbieInfoRepository.GetAsync(user.Profession);
             if (info == null)
                 return;
 

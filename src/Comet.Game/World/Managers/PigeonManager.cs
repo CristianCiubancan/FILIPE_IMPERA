@@ -28,9 +28,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Game.States;
+using Comet.Game.Database.Repositories;
 
 #endregion
 
@@ -52,7 +53,7 @@ namespace Comet.Game.World.Managers
 
         public async Task<bool> InitializeAsync()
         {
-            m_queue = new List<DbPigeonQueue>((await DbPigeonQueue.GetAsync()).OrderBy(x => x.NextIdentity));
+            m_queue = new List<DbPigeonQueue>((await PigeonQueueRepository.GetAsync()).OrderBy(x => x.NextIdentity));
             await SyncAsync();
             return true;
         }

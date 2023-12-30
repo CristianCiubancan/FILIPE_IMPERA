@@ -27,7 +27,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States.Events;
@@ -204,7 +204,7 @@ namespace Comet.Game.States.Syndicates
 
             Level = 1;
 
-            var totemAdds = await DbTotemAdd.GetAsync(Identity);
+            var totemAdds = await TotemAddRepository.GetAsync(Identity);
             var items = await ItemRepository.GetBySyndicateAsync(Identity) ?? new List<DbItem>();            
             for (TotemPoleType totemPole = TotemPoleType.Headgear; totemPole < TotemPoleType.None; totemPole++)
             {

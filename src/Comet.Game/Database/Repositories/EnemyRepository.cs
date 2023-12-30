@@ -24,7 +24,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -35,13 +36,13 @@ namespace Comet.Game.Database.Repositories
         public static async Task<List<DbEnemy>> GetAsync(uint idUser)
         {
             await using var db = new ServerDbContext();
-            return db.Enemies.Where(x => x.UserIdentity == idUser).ToList();
+            return await db.Enemies.Where(x => x.UserIdentity == idUser).ToListAsync();
         }
 
         public static async Task<List<DbEnemy>> GetOwnEnemyAsync(uint idUser)
         {
             await using var db = new ServerDbContext();
-            return db.Enemies.Where(x => x.TargetIdentity == idUser).ToList();
+            return await db.Enemies.Where(x => x.TargetIdentity == idUser).ToListAsync();
         }
     }
 }

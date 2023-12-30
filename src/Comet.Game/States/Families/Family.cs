@@ -28,9 +28,10 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Network.Packets;
+using Comet.Game.Database.Repositories;
 
 #endregion
 
@@ -112,7 +113,7 @@ namespace Comet.Game.States.Families
         {
             Family family = new Family {m_family = dbFamily};
 
-            var members = await DbFamilyAttr.GetAsync(family.Identity);
+            var members = await FamilyAttrRepository.GetAsync(family.Identity);
             if (members == null)
                 return null;
 

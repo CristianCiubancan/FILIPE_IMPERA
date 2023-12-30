@@ -28,7 +28,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States.BaseEntities;
@@ -86,7 +86,7 @@ namespace Comet.Game.States.Events
 
             m_owner.Data0 = 0;
 
-            m_questions.AddRange(await DbQuiz.GetAsync());
+            m_questions.AddRange(await QuizRepository.GetAsync());
             return true;
         }
 

@@ -24,7 +24,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core.Mathematics;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Game.States.Magics;
 using Comet.Game.World.Maps;

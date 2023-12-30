@@ -23,7 +23,8 @@
 
 using System.Threading.Tasks;
 using Comet.Core;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
+using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States.BaseEntities;
 using Comet.Game.World;
@@ -89,7 +90,7 @@ namespace Comet.Game.States
 
         public async Task<bool> InitializeAsync(Role owner = null)
         {
-            m_dbTrap.Type ??= await DbTrapType.GetAsync(m_dbTrap.TypeId);
+            m_dbTrap.Type ??= await TrapTypeRepository.GetAsync(m_dbTrap.TypeId);
 
             if (m_dbTrap.Type == null)
             {

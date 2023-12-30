@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Core.Mathematics;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Internal;
 using Comet.Game.Packets;
@@ -3081,7 +3081,7 @@ namespace Comet.Game.States
 
         public async Task<bool> DoCardsAsync()
         {
-            var cards = await DbCard.GetAsync(m_dbObject.AccountIdentity);
+            var cards = await CardRepository.GetAsync(m_dbObject.AccountIdentity);
             if (cards.Count == 0)
                 return false;
 
@@ -3125,7 +3125,7 @@ namespace Comet.Game.States
 
         public Task<int> CardsCountAsync()
         {
-            return DbCard.CountAsync(m_dbObject.AccountIdentity);
+            return CardRepository.CountAsync(m_dbObject.AccountIdentity);
         }
 
         #endregion
@@ -3136,7 +3136,7 @@ namespace Comet.Game.States
 
         public async Task LoadMonsterKillsAsync()
         {
-            m_monsterKills = new ConcurrentDictionary<uint, DbMonsterKill>((await DbMonsterKill.GetAsync(Identity)).ToDictionary(x => x.Monster));
+            m_monsterKills = new ConcurrentDictionary<uint, DbMonsterKill>((await MonsterKillRepository.GetAsync(Identity)).ToDictionary(x => x.Monster));
         }
 
         public Task KillMonsterAsync(uint type)
@@ -3614,7 +3614,7 @@ namespace Comet.Game.States
 
         public async Task LoadTradePartnerAsync()
         {
-            var tps = await DbBusiness.GetAsync(Identity);
+            var tps = await BusinessRepository.GetAsync(Identity);
             foreach (var tp in tps)
             {
                 var db = new TradePartner(this, tp);
@@ -4728,7 +4728,7 @@ namespace Comet.Game.States
 
         public async Task LoadStatusAsync()
         {
-            var statusList = await DbStatus.GetAsync(Identity);
+            var statusList = await StatusRepository.GetAsync(Identity);
             foreach (var status in statusList)
             {
                 if (status.EndTime < DateTime.Now)
@@ -4857,7 +4857,7 @@ namespace Comet.Game.States
 
         public async Task LoadTitlesAsync()
         {
-            var titles = await DbUserTitle.GetAsync(Identity);
+            var titles = await UserTitleRepository.GetAsync(Identity);
             foreach (var title in titles)
             {
                 m_userTitles.TryAdd(title.TitleId, title);
@@ -5317,7 +5317,7 @@ namespace Comet.Game.States
 
         public async Task LoadGuideAsync()
         {
-            DbTutor tutor = await DbTutor.GetAsync(Identity);
+            DbTutor tutor = await TutorRepository.GetAsync(Identity);
             if (tutor != null)
             {
                 Guide = await Tutor.CreateAsync(tutor);
@@ -5337,7 +5337,7 @@ namespace Comet.Game.States
                 }
             }
 
-            var apprentices = await DbTutor.GetStudentsAsync(Identity);
+            var apprentices = await TutorRepository.GetStudentsAsync(Identity);
             foreach (var dbApprentice in apprentices)
             {
                 Tutor apprentice = await Tutor.CreateAsync(dbApprentice);
@@ -5358,7 +5358,7 @@ namespace Comet.Game.States
                 }
             }
 
-            m_tutorAccess = await DbTutorAccess.GetAsync(Identity);
+            m_tutorAccess = await TutorAccessRepository.GetAsync(Identity);
         }
 
         public static async Task<bool> CreateTutorRelationAsync(Character guide, Character apprentice)
@@ -5489,7 +5489,7 @@ namespace Comet.Game.States
 
         public async Task SendDetainedEquipmentAsync()
         {
-            var items = await DbDetainedItem.GetFromDischargerAsync(Identity);
+            var items = await DetainedItemRepository.GetFromDischargerAsync(Identity);
             foreach (var dbDischarged in items)
             {
                 if (dbDischarged.ItemIdentity == 0)
@@ -5515,7 +5515,7 @@ namespace Comet.Game.States
 
         public async Task SendDetainRewardAsync()
         {
-            var items = await DbDetainedItem.GetFromHunterAsync(Identity);
+            var items = await DetainedItemRepository.GetFromHunterAsync(Identity);
             foreach (var dbDetained in items)
             {
                 DbItem dbItem = null;

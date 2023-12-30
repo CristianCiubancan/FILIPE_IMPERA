@@ -27,7 +27,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Game.States.BaseEntities;
 using Comet.Game.States.Magics;
@@ -35,7 +35,7 @@ using Comet.Game.World;
 using Comet.Game.World.Maps;
 using Comet.Network.Packets;
 using Comet.Shared;
-using Microsoft.Extensions.Configuration.Ini;
+using Comet.Game.Database.Repositories;
 
 namespace Comet.Game.States.Events
 {
@@ -82,7 +82,7 @@ namespace Comet.Game.States.Events
                 return false;
             }
 
-            m_arenics = new ConcurrentDictionary<uint, DbArenic>((await DbArenic.GetAsync(DateTime.Now)).ToDictionary(x => x.UserId));
+            m_arenics = new ConcurrentDictionary<uint, DbArenic>((await ArenicRepository.GetAsync(DateTime.Now)).ToDictionary(x => x.UserId));
 
             try
             {

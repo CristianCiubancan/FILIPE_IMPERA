@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States;
@@ -200,7 +200,7 @@ namespace Comet.Game.World.Managers
         /// <returns>True if the item has been successfully claimed.</returns>
         public async Task<bool> ClaimDetainRewardAsync(uint idDetain, Character user)
         {
-            DbDetainedItem dbDetain = await DbDetainedItem.GetByIdAsync(idDetain);
+            DbDetainedItem dbDetain = await DetainedItemRepository.GetByIdAsync(idDetain);
             if (dbDetain == null)
                 return false;
 
@@ -252,7 +252,7 @@ namespace Comet.Game.World.Managers
         /// <returns>True if the item has been successfully detained.</returns>
         public async Task<bool> ClaimDetainedItemAsync(uint idDetain, Character user)
         {
-            DbDetainedItem dbDetain = await DbDetainedItem.GetByIdAsync(idDetain);
+            DbDetainedItem dbDetain = await DetainedItemRepository.GetByIdAsync(idDetain);
             if (dbDetain == null)
                 return false;
 

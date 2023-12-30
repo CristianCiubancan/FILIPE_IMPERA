@@ -27,9 +27,10 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Packets;
 using Comet.Game.States;
+using Comet.Game.Database.Repositories;
 
 #endregion
 
@@ -41,7 +42,7 @@ namespace Comet.Game.World.Managers
 
         public async Task<bool> InitializeAsync()
         {
-            foreach (var flower in await DbFlower.GetAsync())
+            foreach (var flower in await FlowerRepository.GetAsync())
             {
                 FlowerRankObject obj = new FlowerRankObject(flower);
                 m_dicFlowers.TryAdd(flower.UserId, obj);

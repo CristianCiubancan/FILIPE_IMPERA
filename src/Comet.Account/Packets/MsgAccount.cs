@@ -103,8 +103,10 @@ namespace Comet.Account.Packets
                 // TODO  sync website and check if account is active
             }
 
+            var serverObject = client.Realm?.GetServer<GameServer>();
+
             // Connect to the game server
-            if (!Kernel.Realms.TryGetValue(Realm, out var server) || server.Server?.Socket.Connected != true)
+            if (!Kernel.Realms.TryGetValue(Realm, out var server) || (serverObject != null && serverObject?.Socket.Connected != true))
             {
                 await Log.WriteLogAsync("login_fail", LogLevel.Info,
                     $"[{Username}] tried to login on a not connected [{Realm}] server.");
@@ -117,7 +119,9 @@ namespace Comet.Account.Packets
 
             Kernel.Clients.TryAdd(client.Account.AccountID, client);
 
-            await server.Server.SendAsync(new MsgAccServerLoginExchange
+            var finalServerObject = client.Realm.GetServer<GameServer>();
+
+            await finalServerObject.SendAsync(new MsgAccServerLoginExchange
             {
                 AccountID = client.Account.AccountID,
                 AuthorityID = client.Account.AuthorityID,

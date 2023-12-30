@@ -22,7 +22,7 @@
 #region References
 
 using Comet.Core.Mathematics;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.States.BaseEntities;
 
 #endregion

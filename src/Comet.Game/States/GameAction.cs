@@ -28,7 +28,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Comet.Core;
 using Comet.Game.Database;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.Packets;
 using Comet.Game.States.BaseEntities;
@@ -5934,7 +5934,7 @@ namespace Comet.Game.States
                 return false;
             }
 
-            List<DbLottery> allItems = await DbLottery.GetAsync();
+            List<DbLottery> allItems = await LotteryRepositoy.GetAsync();
             int lottoChance = await Kernel.NextAsync(10000);
             if (lottoChance > 20)
             {

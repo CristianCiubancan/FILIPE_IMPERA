@@ -21,7 +21,7 @@
 
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Comet.Game.Database.Repositories;
 using Comet.Game.States.NPCs;
 using Comet.Shared;

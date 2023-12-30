@@ -23,7 +23,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Comet.Game.Database.Models;
+using Comet.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 #endregion
