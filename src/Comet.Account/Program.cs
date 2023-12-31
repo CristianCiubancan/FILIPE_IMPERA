@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Comet.Account.Database;
@@ -31,6 +30,11 @@ using Comet.Database.Entities;
 using Comet.Account.Database.Repositories;
 using Comet.Account.Threading;
 using Comet.Shared;
+using Comet.Shared.Threads;
+using Comet.Shared.Loggers;
+using Microsoft.Extensions.Logging;
+using Comet.Shared;
+using Comet.Account.States;
 
 #endregion
 
@@ -44,35 +48,44 @@ namespace Comet.Account
     /// </summary>
     internal static class Program
     {
+        private static ILogger logger;
+
+        public static LogProcessor LogProcessor { get; set; }
+        private static SchedulerFactory SchedulerFactory { get; set; }
+        public static SocketConnection Sockets = new();
+        public static ServerConfiguration Configuration { get; set; }
         private static async Task Main(string[] args)
         {
             Log.DefaultFileName = "AccountServer";
-
+            LogProcessor = new LogProcessor(CancellationToken.None);
+            _ = LogProcessor.StartAsync(CancellationToken.None);
+            LogFactory.Initialize(LogProcessor, "Comet.Login");
+            logger = LogFactory.CreateLogger<Server>();
             // Copyright notice may not be commented out. If adding your own copyright or
             // claim of ownership, you may include a second copyright above the existing
             // copyright. Do not remove completely to comply with software license. The
             // project name and version may be removed or changed.
             Console.Title = "Comet, Account Server";
             Console.WriteLine();
-            await Log.WriteLogAsync(LogLevel.Info, "  Comet: Account Server");
-            await Log.WriteLogAsync(LogLevel.Info, $"  Copyright 2018-{DateTime.Now:yyyy} Gareth Jensen \"Spirited\"");
-            await Log.WriteLogAsync(LogLevel.Info, "  All Rights Reserved");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "  Comet: Account Server");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, $"  Copyright 2018-{DateTime.Now:yyyy} Gareth Jensen \"Spirited\"");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "  All Rights Reserved");
             Console.WriteLine();
 
             // Read configuration file and command-line arguments
-            var config = new ServerConfiguration(args);
-            if (!config.Valid)
+            Configuration = new ServerConfiguration(args);
+            if (!Configuration.Valid)
             {
                 Console.WriteLine("Invalid server configuration file");
                 return;
             }
             // Initialize the database
-            await Log.WriteLogAsync(LogLevel.Info, "Initializing server...");
-            ServerDbContext.Configuration = config.Database;
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Initializing server...");
+            ServerDbContext.Configuration = Configuration.Database;
             ServerDbContext.Initialize();
             if (!ServerDbContext.Ping())
             {
-                await Log.WriteLogAsync(LogLevel.Info, "Invalid database configuration");
+                await Log.WriteLogAsync(Shared.LogLevel.Info, "Invalid database configuration");
                 return;
             }
 
@@ -86,26 +99,28 @@ namespace Comet.Account
             Task.WaitAll(tasks.ToArray());
 #pragma warning restore VSTHRD103 // Chame métodos assíncronos quando estiver em um método assíncrono
 
-            await Log.WriteLogAsync(LogLevel.Info, "Launching realm server listener...");
-            var realmServer = new IntraServer(config);
-            _ = realmServer.StartAsync(config.RealmNetwork.Port);
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Launching realm server listener...");
+            Sockets.GameServer = new IntraServer(Configuration);
+            _ = Sockets.GameServer.StartAsync(Configuration.RealmNetwork.Port);
 
             // Start the server listener
-            await Log.WriteLogAsync(LogLevel.Info, "Launching server listener...");
-            var server = new Server(config);
-            _ = server.StartAsync(config.Network.Port, config.Network.IPAddress).ConfigureAwait(false);
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Launching server listener...");
+            Sockets.LoginServer = new Server(Configuration);
+            _ = Sockets.LoginServer.StartAsync(Configuration.Network.Port, Configuration.Network.IPAddress).ConfigureAwait(false);
 
-            BasicProcessing thread = new();
-            await thread.StartAsync();
-
+            // BasicProcessing thread = new();
+            // await thread.StartAsync();
+            SchedulerFactory = new SchedulerFactory();
+            await SchedulerFactory.StartAsync();
+            await SchedulerFactory.ScheduleAsync<BasicThread>("* * * * * ?");
             // Output all clear and wait for user input
-            await Log.WriteLogAsync(LogLevel.Info, "Listening for new connections");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Listening for new connections");
             Console.WriteLine();
             bool result = await CommandCenterAsync();
 
-            await thread.CloseAsync();
+            // await thread.CloseAsync();
             if (!result)
-                await Log.WriteLogAsync(LogLevel.Error, "Account server has exited without success.");
+                await Log.WriteLogAsync(Shared.LogLevel.Error, "Account server has exited without success.");
         }
 
         private static async Task<bool> CommandCenterAsync()
@@ -119,11 +134,11 @@ namespace Comet.Account
 
                 if (text == "exit")
                 {
-                    await Log.WriteLogAsync(LogLevel.Warning, "Server will shutdown...");
+                    await Log.WriteLogAsync(Shared.LogLevel.Warning, "Server will shutdown...");
                     return true;
                 }
 
-                string[] full = text.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                string[] full = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (full.Length <= 0)
                     continue;
@@ -131,50 +146,56 @@ namespace Comet.Account
                 switch (full[0].ToLower())
                 {
                     case "newuser":
-                    {
-                        if (full.Length < 3)
                         {
-                            Console.WriteLine(@"newuser username password [type] [vip]");
+                            if (full.Length < 3)
+                            {
+                                Console.WriteLine(@"newuser username password [type] [vip]");
+                                continue;
+                            }
+
+                            string username = full[1];
+                            string salt = AccountsRepository.GenerateSalt();
+                            string password = AccountsRepository.HashPassword(full[2], salt);
+                            int type = 1;
+                            int vip = 0;
+
+                            if (full.Length >= 4)
+                                int.TryParse(full[3], out type);
+                            if (full.Length >= 5)
+                                int.TryParse(full[4], out vip);
+
+                            if (await AccountsRepository.FindAsync(username) != null)
+                            {
+                                Console.WriteLine(@"The required username is already in use.");
+                                continue;
+                            }
+
+                            DbAccount account = new DbAccount
+                            {
+                                AuthorityID = (ushort)type,
+                                Username = username,
+                                Password = password,
+                                IPAddress = "127.0.0.1",
+                                Salt = salt,
+                                StatusID = 1,
+                                VipLevel = (byte)vip,
+                                MacAddress = ""
+                            };
+
+                            await using var db = new ServerDbContext();
+                            db.Accounts.Add(account);
+                            await db.SaveChangesAsync();
+
                             continue;
                         }
-
-                        string username = full[1];
-                        string salt = AccountsRepository.GenerateSalt();
-                        string password = AccountsRepository.HashPassword(full[2], salt);
-                        int type = 1;
-                        int vip = 0;
-
-                        if (full.Length >= 4)
-                            int.TryParse(full[3], out type);
-                        if (full.Length >= 5)
-                            int.TryParse(full[4], out vip);
-
-                        if (await AccountsRepository.FindAsync(username) != null)
-                        {
-                            Console.WriteLine(@"The required username is already in use.");
-                            continue;
-                        }
-
-                        DbAccount account = new DbAccount
-                        {
-                            AuthorityID = (ushort) type,
-                            Username = username,
-                            Password = password,
-                            IPAddress = "127.0.0.1",
-                            Salt = salt,
-                            StatusID = 1,
-                            VipLevel = (byte) vip,
-                            MacAddress = ""
-                        };
-
-                        await using var db = new ServerDbContext();
-                        db.Accounts.Add(account);
-                        await db.SaveChangesAsync();
-
-                        continue;
-                    }
                 }
             }
+        }
+
+        public class SocketConnection
+        {
+            public Server LoginServer { get; set; }
+            public IntraServer GameServer { get; set; }
         }
     }
 }

@@ -43,23 +43,31 @@ namespace Comet.Network.Sockets
     /// </summary>
     public abstract class TcpServerActor
     {
+        private static readonly ILogger logger = LogFactory.CreateLogger<TcpServerActor>();
+
+        private object SendLock = new();
+
         // Fields and Properties
-        public readonly Memory<byte> Buffer;
-        public readonly ICipher Cipher;
-        public readonly Socket Socket;
-        public readonly uint Partition;
-        private readonly object SendLock;
-        public readonly byte[] PacketFooter;
+        public Memory<byte> Buffer { get; }
+        public ICipher Cipher { get; }
+        public byte[] PacketFooter { get; }
+        public uint Partition { get; }
+        public Socket Socket { get; }
+        public int ReceiveTimeOutSeconds { get; set; } = 30;
+
+        public Stage ConnectionStage { get; set; }
+
 
         /// <summary>
         ///     Instantiates a new instance of <see cref="TcpServerActor" /> using an accepted
-        ///     client socket and preallocated buffer from the server listener.
+        ///     client socket and pre-allocated buffer from the server listener.
         /// </summary>
         /// <param name="socket">Accepted client socket</param>
-        /// <param name="buffer">Preallocated buffer for socket receive operations</param>
+        /// <param name="buffer">Pre-allocated buffer for socket receive operations</param>
         /// <param name="cipher">Cipher for handling client encipher operations</param>
         /// <param name="partition">Packet processing partition, default is disabled</param>
-        public TcpServerActor(
+        /// <param name="packetFooter">Length of the packet footer</param>
+        protected TcpServerActor(
             Socket socket,
             Memory<byte> buffer,
             ICipher cipher,
@@ -71,17 +79,14 @@ namespace Comet.Network.Sockets
             Socket = socket;
             PacketFooter = Encoding.ASCII.GetBytes(packetFooter);
             Partition = partition;
-            SendLock = new object();
 
-            IPAddress = (Socket.RemoteEndPoint as IPEndPoint)?.Address.MapToIPv4().ToString();
+            IpAddress = (Socket.RemoteEndPoint as IPEndPoint)?.Address.MapToIPv4().ToString();
         }
-
-        public bool Exchanged = false;
 
         /// <summary>
         ///     Returns the remote IP address of the connected client.
         /// </summary>
-        public string IPAddress { get; }
+        public string IpAddress { get; }
 
         /// <summary>
         ///     Sends a packet to the game client after encrypting bytes. This may be called
@@ -90,35 +95,34 @@ namespace Comet.Network.Sockets
         ///     and sending data.
         /// </summary>
         /// <param name="packet">Bytes to be encrypted and sent to the client</param>
-        public virtual Task<int> SendAsync(byte[] packet)
+        internal virtual Task<bool> InternalSendAsync(byte[] packet)
         {
-            var encrypted = new byte[packet.Length + this.PacketFooter.Length];
-            packet.CopyTo(encrypted, 0);
+            var data = new byte[packet.Length + PacketFooter.Length];
+            packet.CopyTo(data, 0);
 
-            BitConverter.TryWriteBytes(encrypted, (ushort)packet.Length);
-            Array.Copy(this.PacketFooter, 0, encrypted, packet.Length, this.PacketFooter.Length);
+            BitConverter.TryWriteBytes(data, (ushort)packet.Length);
+            Array.Copy(PacketFooter, 0, data, packet.Length, PacketFooter.Length);
 
             lock (SendLock)
             {
                 try
                 {
-                    if (Socket?.Connected != true)
-                        return Task.FromResult(-1);
-
-                    Cipher?.Encrypt(encrypted, encrypted);
-                    return Socket.SendAsync(encrypted, SocketFlags.None);
+                    Cipher?.Encrypt(data, data);
+                    return Task.FromResult(Socket.Send(data, SocketFlags.None) > 0);
                 }
-                catch (SocketException e)
+                catch (SocketException ex)
                 {
-                    if (e.SocketErrorCode < SocketError.ConnectionAborted ||
-                        e.SocketErrorCode > SocketError.Shutdown)
-                        Console.WriteLine(e);
-                    return Task.FromResult(-1);
+                    if (ex.SocketErrorCode is < SocketError.ConnectionAborted or > SocketError.Shutdown)
+                    {
+                        logger.LogError(ex.ToString());
+                    }
+
+                    return Task.FromResult(false);
                 }
                 catch (Exception ex)
                 {
-                    Log.WriteLogAsync("TcpServerActor-SendAsync", LogLevel.Exception, ex.ToString()).ConfigureAwait(false);
-                    return Task.FromResult(-1);
+                    logger.LogError(ex.ToString());
+                    return Task.FromResult(false);
                 }
             }
         }
@@ -130,10 +134,28 @@ namespace Comet.Network.Sockets
         ///     and sending data.
         /// </summary>
         /// <param name="packet">Packet to be encrypted and sent to the client</param>
-        public virtual Task<int> SendAsync(IPacket packet)
+        public virtual Task SendAsync(IPacket packet)
         {
             return SendAsync(packet.Encode());
         }
+
+        public virtual Task SendAsync(IPacket packet, Func<Task> task)
+        {
+            return SendAsync(packet.Encode(), task);
+        }
+
+        public virtual Task DirectSendAsync(IPacket packet)
+        {
+            return InternalSendAsync(packet.Encode());
+        }
+
+        public virtual Task DirectSendAsync(byte[] packet)
+        {
+            return InternalSendAsync(packet);
+        }
+
+        public abstract Task SendAsync(byte[] packet);
+        public abstract Task SendAsync(byte[] packet, Func<Task> task);
 
         /// <summary>
         ///     Force closes the client connection.
@@ -141,6 +163,13 @@ namespace Comet.Network.Sockets
         public virtual void Disconnect()
         {
             Socket?.Disconnect(false);
+        }
+
+        public enum Stage
+        {
+            Connect,
+            Exchange,
+            Receiving
         }
     }
 }

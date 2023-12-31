@@ -38,6 +38,10 @@ using Comet.Network.RPC;
 using Comet.Network.Security;
 using Comet.Shared;
 using Comet.Shared.Models;
+using Comet.Shared.Threads;
+using Comet.Game.Threading;
+using Microsoft.Extensions.Logging;
+using Comet.Shared.Loggers;
 
 #endregion
 
@@ -51,6 +55,12 @@ namespace Comet.Game
     /// </summary>
     internal static class Program
     {
+        private static ILogger logger;
+        private static SchedulerFactory schedulerFactory;
+        public static readonly SocketConnection Sockets = new();
+        public static LogProcessor LogProcessor;
+        public static ServerConfiguration Configuration { get; set; }
+
         private static async Task Main(string[] args)
         {
             Log.DefaultFileName = "GameServer";
@@ -59,32 +69,36 @@ namespace Comet.Game
             // claim of ownership, you may include a second copyright above the existing
             // copyright. Do not remove completely to comply with software license. The
             // project name and version may be removed or changed.
+            LogProcessor = new LogProcessor(CancellationToken.None);
+            _ = LogProcessor.StartAsync(CancellationToken.None);
+            LogFactory.Initialize(LogProcessor, "Comet.Login");
+            logger = LogFactory.CreateLogger<Server>();
             Console.Title = @"Comet, Game Server";
             Console.WriteLine();
-            await Log.WriteLogAsync(LogLevel.Info, "  Comet: Game Server");
-            await Log.WriteLogAsync(LogLevel.Info, $"  Copyright 2018-{DateTime.Now:yyyy} Gareth Jensen \"Spirited\"");
-            await Log.WriteLogAsync(LogLevel.Info, "  All Rights Reserved");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "  Comet: Game Server");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, $"  Copyright 2018-{DateTime.Now:yyyy} Gareth Jensen \"Spirited\"");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "  All Rights Reserved");
             Console.WriteLine();
 
             // Read configuration file and command-line arguments
-            var config = new ServerConfiguration(args);
-            if (!config.Valid)
+            Configuration = new ServerConfiguration(args);
+            if (!Configuration.Valid)
             {
-                await Log.WriteLogAsync(LogLevel.Error, "Invalid server configuration file");
+                await Log.WriteLogAsync(Shared.LogLevel.Error, "Invalid server configuration file");
                 return;
             }
 
-            Kernel.Configuration = config.GameNetwork;
-            AccountClient.Configuration = config.RpcNetwork;
+            Kernel.Configuration = Configuration.GameNetwork;
+            AccountClient.Configuration = Configuration.RpcNetwork;
 
             // Initialize the database
-            await Log.WriteLogAsync(LogLevel.Info, "Initializing server...");
-            MsgConnect.StrictAuthentication = config.Authentication.StrictAuthPass;
-            ServerDbContext.Configuration = config.Database;
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Initializing server...");
+            MsgConnect.StrictAuthentication = Configuration.Authentication.StrictAuthPass;
+            ServerDbContext.Configuration = Configuration.Database;
             ServerDbContext.Initialize();
             if (!await ServerDbContext.PingAsync())
             {
-                await Log.WriteLogAsync(LogLevel.Error, "Invalid database configuration");
+                await Log.WriteLogAsync(Shared.LogLevel.Error, "Invalid database configuration");
                 return;
             }
 
@@ -99,7 +113,7 @@ namespace Comet.Game
 
             if (!await Kernel.StartupAsync().ConfigureAwait(true))
             {
-                await Log.WriteLogAsync(LogLevel.Error, "Could not load database related stuff");
+                await Log.WriteLogAsync(Shared.LogLevel.Error, "Could not load database related stuff");
                 return;
             }
 
@@ -108,19 +122,23 @@ namespace Comet.Game
             {
             };
             Task.WaitAll(tasks.ToArray());
+            schedulerFactory = new SchedulerFactory();
+            await schedulerFactory.StartAsync();
+            await schedulerFactory.ScheduleAsync<BasicThread>("* * * * * ?");
+            await schedulerFactory.ScheduleAsync<AutomaticActionThread>("0 * * * * ?");
 
             // Start the game server listener
-            var server = new Server(config);
-            _ = server.StartAsync(config.GameNetwork.Port, config.GameNetwork.IPAddress)
+            Sockets.GameServer = new Server(Configuration);
+            _ = Sockets.GameServer.StartAsync(Configuration.GameNetwork.Port, Configuration.GameNetwork.IPAddress)
                 .ConfigureAwait(false);
 
             // Output all clear and wait for user input
-            await Log.WriteLogAsync(LogLevel.Info, "Listening for new connections");
+            await Log.WriteLogAsync(Shared.LogLevel.Info, "Listening for new connections");
             Console.WriteLine();
 
             bool result = await CommandCenterAsync();
             if (!result)
-                await Log.WriteLogAsync(LogLevel.Error, "Game server has exited without success.");
+                await Log.WriteLogAsync(Shared.LogLevel.Error, "Game server has exited without success.");
 
             await Kernel.CloseAsync();
         }
@@ -136,11 +154,11 @@ namespace Comet.Game
 
                 if (text == "exit")
                 {
-                    await Log.WriteLogAsync(LogLevel.Warning, "Server will shutdown...");
+                    await Log.WriteLogAsync(Shared.LogLevel.Warning, "Server will shutdown...");
                     return true;
                 }
 
-                string[] full = text.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                string[] full = text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (full.Length <= 0)
                     continue;
@@ -152,85 +170,85 @@ namespace Comet.Game
                         break;
 
                     case "/analytics":
-                    {
-                        await Kernel.SystemThread.DoAnalyticsAsync();
-                        break;
-                    }
+                        {
+                            await Kernel.SystemThread.DoAnalyticsAsync();
+                            break;
+                        }
 
                     case "/broadcast":
-                    {
-                        string[] bc = text.Split(new[] {" "}, 2, StringSplitOptions.RemoveEmptyEntries);
-                        if (bc.Length < 2)
+                        {
+                            string[] bc = text.Split(new[] { " " }, 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (bc.Length < 2)
+                                break;
+                            await Kernel.RoleManager.BroadcastMsgAsync(bc[1], MsgTalk.TalkChannel.Center);
                             break;
-                        await Kernel.RoleManager.BroadcastMsgAsync(bc[1], MsgTalk.TalkChannel.Center);
-                        break;
-                    }
+                        }
 
                     case "/createbots":
-                    {
-                        if (!int.TryParse(full[1], out int amount))
-                            break;
-
-                        if (!int.TryParse(full[2], out int initialId))
-                            break;
-
-                        for (int i = 0; i < amount; i++, initialId++)
                         {
-                            int prof = 40;
-                            uint mesh = 11003;
-
-                            DbPointAllot allot = Kernel.RoleManager.GetPointAllot((ushort) (prof / 10), 1) ??
-                                                 new DbPointAllot
-                                                 {
-                                                     Strength = 4,
-                                                     Agility = 6,
-                                                     Vitality = 12,
-                                                     Spirit = 0
-                                                 };
-
-                            DbCharacter user = new DbCharacter
-                            {
-                                Name = $"ImmaBot{i:0000}",
-                                MapID = 1002,
-                                Mate = 0,
-                                Mesh = mesh,
-                                X = 430,
-                                Y = 478,
-                                Strength = allot.Strength,
-                                Agility = allot.Agility,
-                                Vitality = allot.Vitality,
-                                Spirit = allot.Spirit,
-                                HealthPoints =
-                                    (ushort)(allot.Strength * 3
-                                             + allot.Agility * 3
-                                             + allot.Spirit * 3
-                                             + allot.Vitality * 24),
-                                ManaPoints = (ushort)(allot.Spirit * 5),
-                                Registered = DateTime.Now,
-                                ExperienceMultiplier = 5,
-                                ExperienceExpires = DateTime.Now.AddHours(1),
-                                HeavenBlessing = DateTime.Now.AddDays(30),
-                                AutoAllot = 1,
-                                Silver = 1000,
-                                Level = 1,
-                                Profession = (byte) prof,
-                                AccountIdentity = (uint) initialId
-                            };
-
-                            if (!await BaseRepository.SaveAsync(user))
-                            {
-                                await Log.WriteLogAsync(LogLevel.Error, $"Error saving bot {i}");
+                            if (!int.TryParse(full[1], out int amount))
                                 break;
-                            }
 
-                            await BaseRepository.SaveAsync(new DbMagic
+                            if (!int.TryParse(full[2], out int initialId))
+                                break;
+
+                            for (int i = 0; i < amount; i++, initialId++)
                             {
-                                OwnerId = user.Identity,
-                                Type = 8001,
-                                Level = 3
-                            });
+                                int prof = 40;
+                                uint mesh = 11003;
 
-                            var items = new List<DbItem>
+                                DbPointAllot allot = Kernel.RoleManager.GetPointAllot((ushort)(prof / 10), 1) ??
+                                                     new DbPointAllot
+                                                     {
+                                                         Strength = 4,
+                                                         Agility = 6,
+                                                         Vitality = 12,
+                                                         Spirit = 0
+                                                     };
+
+                                DbCharacter user = new DbCharacter
+                                {
+                                    Name = $"ImmaBot{i:0000}",
+                                    MapID = 1002,
+                                    Mate = 0,
+                                    Mesh = mesh,
+                                    X = 430,
+                                    Y = 478,
+                                    Strength = allot.Strength,
+                                    Agility = allot.Agility,
+                                    Vitality = allot.Vitality,
+                                    Spirit = allot.Spirit,
+                                    HealthPoints =
+                                        (ushort)(allot.Strength * 3
+                                                 + allot.Agility * 3
+                                                 + allot.Spirit * 3
+                                                 + allot.Vitality * 24),
+                                    ManaPoints = (ushort)(allot.Spirit * 5),
+                                    Registered = DateTime.Now,
+                                    ExperienceMultiplier = 5,
+                                    ExperienceExpires = DateTime.Now.AddHours(1),
+                                    HeavenBlessing = DateTime.Now.AddDays(30),
+                                    AutoAllot = 1,
+                                    Silver = 1000,
+                                    Level = 1,
+                                    Profession = (byte)prof,
+                                    AccountIdentity = (uint)initialId
+                                };
+
+                                if (!await BaseRepository.SaveAsync(user))
+                                {
+                                    await Log.WriteLogAsync(Shared.LogLevel.Error, $"Error saving bot {i}");
+                                    break;
+                                }
+
+                                await BaseRepository.SaveAsync(new DbMagic
+                                {
+                                    OwnerId = user.Identity,
+                                    Type = 8001,
+                                    Level = 3
+                                });
+
+                                var items = new List<DbItem>
                             {
                                 new DbItem
                                 {
@@ -294,14 +312,14 @@ namespace Comet.Game
                                 },
                             };
 
-                            await BaseRepository.SaveAsync(items);
+                                await BaseRepository.SaveAsync(items);
 
-                            await Log.WriteLogAsync(LogLevel.Debug,
-                                $"Bot[{user.Name}:{user.Identity}] has been created");
+                                await Log.WriteLogAsync(Shared.LogLevel.Debug,
+                                    $"Bot[{user.Name}:{user.Identity}] has been created");
+                            }
+
+                            break;
                         }
-
-                        break;
-                    }
                 }
             }
         }
@@ -330,10 +348,10 @@ namespace Comet.Game
                 if (Item.IsShield(type) || Item.IsArmor(type) || Item.IsHelmet(type))
                 {
                     uint oldType = type;
-                    int color = (int) (type % 1000 / 100);
+                    int color = (int)(type % 1000 / 100);
                     if (color > 1)
-                        newColor = (byte) Math.Max(3, color);
-                    type = (uint) (type - color * 100);
+                        newColor = (byte)Math.Max(3, color);
+                    type = (uint)(type - color * 100);
                     _ = Log.GmLogAsync($"ItemColorChangeType",
                         $"PlayerId: {row["player_id"]}, OwnerId: {row["owner_id"]}, OldType: {oldType}, NewType: {type}");
                 }
@@ -370,7 +388,13 @@ namespace Comet.Game
             }
 
             writer.Close();
-            await Log.WriteLogAsync(LogLevel.Debug, $"Converted items: {count}");
+            await Log.WriteLogAsync(Shared.LogLevel.Debug, $"Converted items: {count}");
+        }
+
+        public class SocketConnection
+        {
+            public Server GameServer { get; set; }
+            // public NpcServer NpcServer { get; set; }
         }
     }
 }

@@ -172,7 +172,7 @@ namespace Comet.Game.States.Events
                 _ = Map.BroadcastMsgAsync(string.Format(Language.StrLineSkillPktAnnounce, sender.Name));
             }
 
-            _ = Log.GmLogAsync("xianjinengbisai", $"Enter\t{sender.Identity},{sender.Name},{sender.Client.IPAddress}");
+            _ = Log.GmLogAsync("xianjinengbisai", $"Enter\t{sender.Identity},{sender.Name},{sender.Client.IpAddress}");
         }
 
         public override Task OnExitAsync(Character sender)
@@ -306,7 +306,7 @@ namespace Comet.Game.States.Events
                 Identity = user.Identity,
                 AccountIdentity = user.Client.AccountIdentity,
                 Name = user.Name,
-                IpAddress = user.Client.IPAddress
+                IpAddress = user.Client.IpAddress
             }) ? null : player;
         }
 

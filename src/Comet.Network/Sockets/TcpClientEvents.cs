@@ -1,5 +1,6 @@
 ﻿using Comet.Network.Packets;
 using Comet.Shared;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace Comet.Network.Sockets
     public abstract class TcpClientEvents<TActor>
         where TActor : TcpServerActor
     {
+        private static readonly ILogger logger = LogFactory.CreateLogger<TcpClientEvents<TActor>>();
+
         /// <summary>
         ///     Invoked by the server listener's Accepting method to create a new server actor
         ///     around the accepted client socket. Gives the server an opportunity to initialize
@@ -27,6 +30,19 @@ namespace Comet.Network.Sockets
         protected abstract Task<TActor> ConnectedAsync(Socket socket, Memory<byte> buffer);
 
         /// <summary>
+        ///     Invoked by the server listener's Exchanging method to process the client
+        ///     response from the Diffie-Hellman Key Exchange. At this point, the raw buffer
+        ///     from the client has been decrypted and is ready for direct processing.
+        /// </summary>
+        /// <param name="actor">Server actor that represents the remote client</param>
+        /// <param name="buffer">Packet buffer to be processed</param>
+        /// <returns>True if the exchange was successful.</returns>
+        protected virtual Task<bool> ExchangedAsync(TActor actor, Memory<byte> buffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         ///     Invoked by the server listener's Receiving method to process a completed packet
         ///     from the actor's socket pipe. At this point, the packet has been assembled and
         ///     split off from the rest of the buffer. Default behavior, if not overridden, is
@@ -36,8 +52,14 @@ namespace Comet.Network.Sockets
         /// <param name="packet">Packet bytes to be processed</param>
         protected virtual void Received(TActor actor, ReadOnlySpan<byte> packet)
         {
-            Log.WriteLogAsync(LogLevel.Warning, "Received {0} bytes", packet.Length).ConfigureAwait(false);
-            Log.WriteLogAsync(LogLevel.Socket, PacketDump.Hex(packet)).ConfigureAwait(false);
+            logger.LogWarning("Received {len} bytes", packet.Length);
+            logger.LogWarning("{msg}", PacketDump.Hex(packet));
+        }
+
+        public virtual void Send(TActor actor, ReadOnlySpan<byte> packet)
+        {
+            logger.LogWarning("Attempting to send {0} bytes", packet.Length);
+            logger.LogWarning(PacketDump.Hex(packet));
         }
 
         /// <summary>

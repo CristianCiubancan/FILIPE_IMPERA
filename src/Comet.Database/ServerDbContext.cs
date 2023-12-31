@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Canyon.Database
+namespace Comet.Database
 {
     /// <summary>
     ///     Server database client context implemented using Entity Framework Core, an open

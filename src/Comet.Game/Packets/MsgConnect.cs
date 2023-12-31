@@ -87,13 +87,13 @@ namespace Comet.Game.Packets
         {
             // Validate access token
             var auth = Kernel.Logins.Get(Token.ToString()) as TransferAuthArgs;
-            if (auth == null || StrictAuthentication && auth.IPAddress == client.IPAddress)
+            if (auth == null || StrictAuthentication && auth.IPAddress == client.IpAddress)
             {
                 if (auth != null)
                     Kernel.Logins.Remove(Token.ToString());
                 
                 await client.SendAsync(LoginInvalid);
-                await Log.WriteLogAsync(LogLevel.Warning, $"Invalid Login Token: {Token} from {client.IPAddress}");
+                await Log.WriteLogAsync(LogLevel.Warning, $"Invalid Login Token: {Token} from {client.IpAddress}");
                 client.Socket.Disconnect(false);
                 return;
             }

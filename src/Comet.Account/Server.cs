@@ -87,9 +87,18 @@ namespace Comet.Account
         /// <param name="packet">Packet bytes to be processed</param>
         protected override void Received(Client actor, ReadOnlySpan<byte> packet)
         {
-            Processor.Queue(actor, packet.ToArray());
+            Processor.QueueRead(actor, packet.ToArray());
+        }
+        
+        public override void Send(Client actor, ReadOnlySpan<byte> packet)
+        {
+            Processor.QueueWrite(actor, packet.ToArray());
         }
 
+        public override void Send(Client actor, ReadOnlySpan<byte> packet, Func<Task> task)
+        {
+            Processor.QueueWrite(actor, packet.ToArray(), task);
+        }
         /// <summary>
         ///     Invoked by one of the server's packet processor worker threads to process a
         ///     single packet of work. Allows the server to process packets as individual

@@ -23,7 +23,9 @@
 
 using System;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Comet.Database.Entities;
+using Comet.Network.Packets;
 using Comet.Network.Security;
 using Comet.Network.Sockets;
 
@@ -52,10 +54,27 @@ namespace Comet.Account.States
         public Client(Socket socket, Memory<byte> buffer, uint partition)
             : base(socket, buffer, new TQCipher(), partition)
         {
-            Exchanged = true;
+            // Exchanged = true;
         }
 
         public DbRealm Realm { get; set; }
         public uint Seed { get; set; }
+
+        public override Task SendAsync(IPacket packet)
+        {
+            return SendAsync(packet.Encode());
+        }
+
+        public override Task SendAsync(byte[] packet)
+        {
+            Program.Sockets.LoginServer.Send(this, packet);
+            return Task.CompletedTask;
+        }
+
+        public override Task SendAsync(byte[] packet, Func<Task> task)
+        {
+            Program.Sockets.LoginServer.Send(this, packet, task);
+            return Task.CompletedTask;
+        }
     }
 }

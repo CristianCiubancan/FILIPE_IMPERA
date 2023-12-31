@@ -68,10 +68,18 @@ namespace Comet.Game.States
 
         public string GUID { get; }
 
-        public override Task<int> SendAsync(byte[] packet)
+        public override Task SendAsync(byte[] packet)
         {
             Kernel.NetworkMonitor.Send(packet.Length);
-            return base.SendAsync(packet);
+            Program.Sockets.GameServer.Send(this, packet);
+            return Task.CompletedTask;
+        }
+
+        public override Task SendAsync(byte[] packet, Func<Task> task)
+        {
+            Kernel.NetworkMonitor.Send(packet.Length);
+            Program.Sockets.GameServer.Send(this, packet, task);
+            return Task.CompletedTask;
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Comet.Game
     ///     listening functionality and event handling. This class defines how the server
     ///     listener and invoked events are customized for the game server.
     /// </summary>
-    internal sealed class Server : TcpServerListener<Client>
+    public sealed class Server : TcpServerListener<Client>
     {
         // Fields and Properties
         private readonly PacketProcessor<Client> Processor;
@@ -135,9 +135,22 @@ namespace Comet.Game
         protected override void Received(Client actor, ReadOnlySpan<byte> packet)
         {
             Kernel.NetworkMonitor.Receive(packet.Length);
-            Processor.Queue(actor, packet.ToArray());
+            if (actor.ConnectionStage == TcpServerActor.Stage.Exchange)
+            {
+                actor.ReceiveTimeOutSeconds = 900;
+                actor.ConnectionStage = TcpServerActor.Stage.Receiving;
+            }
+            Processor.QueueRead(actor, packet.ToArray());
+        }
+        public override void Send(Client actor, ReadOnlySpan<byte> packet)
+        {
+            Processor.QueueWrite(actor, packet.ToArray());
         }
 
+        public override void Send(Client actor, ReadOnlySpan<byte> packet, Func<Task> task)
+        {
+            Processor.QueueWrite(actor, packet.ToArray(), task);
+        }
         /// <summary>
         ///     Invoked by one of the server's packet processor worker threads to process a
         ///     single packet of work. Allows the server to process packets as individual
@@ -153,7 +166,7 @@ namespace Comet.Game
 
             // Read in TQ's binary header
             var length = BitConverter.ToUInt16(packet, 0);
-            PacketType type = (PacketType) BitConverter.ToUInt16(packet, 2);
+            PacketType type = (PacketType)BitConverter.ToUInt16(packet, 2);
 
             try
             {
@@ -342,7 +355,7 @@ namespace Comet.Game
                         break;
 
                     case PacketType.MsgWeaponsInfo:
-                        msg  = new MsgWeaponsInfo();
+                        msg = new MsgWeaponsInfo();
                         break;
 
                     case PacketType.MsgTotemPole:
@@ -445,9 +458,9 @@ namespace Comet.Game
                 }
                 else
                 {
-                    Log.WriteLogAsync(LogLevel.Info, $"[{actor.IPAddress}] {actor.AccountIdentity} has logged out.").ConfigureAwait(false);
-                }                
+                    Log.WriteLogAsync(LogLevel.Info, $"[{actor.IpAddress}] {actor.AccountIdentity} has logged out.").ConfigureAwait(false);
+                }
             }
-        }        
+        }
     }
 }

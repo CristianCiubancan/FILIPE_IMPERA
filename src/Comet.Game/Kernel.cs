@@ -167,7 +167,7 @@ namespace Comet.Game
             await SystemThread.CloseAsync();
             for (int i = 0; i < 5; i++)
             {
-                await Log.WriteLogAsync(LogLevel.Info, $"Server will shutdown in {5-i} seconds...");
+                await Log.WriteLogAsync(LogLevel.Info, $"Server will shutdown in {5 - i} seconds...");
                 await Task.Delay(1000);
             }
             return true;
@@ -239,7 +239,7 @@ namespace Comet.Game
 
         private static readonly string[] _invalidNameChar =
         {
-            "{", "}", "[", "]", "(", ")", "\"", "[gm]", "[pm]", "'", "´", "`", "admin", "helpdesk", " ",
+            "{", "}", "[", "]", "(", ")", "\"", "[gm]", "[pm]", "'", "ï¿½", "`", "admin", "helpdesk", " ",
             "bitch", "puta", "whore", "ass", "fuck", "cunt", "fdp", "porra", "poha", "caralho", "caraio"
         };
     }

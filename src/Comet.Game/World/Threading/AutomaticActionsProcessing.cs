@@ -32,6 +32,7 @@ using Comet.Game.States.Events;
 using Comet.Shared;
 using Comet.Shared.Comet.Shared;
 using Comet.Game.Database.Repositories;
+using Comet.Game.World.Managers;
 
 #endregion
 
@@ -56,7 +57,7 @@ namespace Comet.Game.World.Threading
         {
             for (int a = 0; a < _ACTION_SYSTEM_EVENT_LIMIT; a++)
             {
-                DbAction action = Kernel.EventManager.GetAction((uint)(_ACTION_SYSTEM_EVENT + a));
+                DbAction action = EventManager.GetAction((uint)(_ACTION_SYSTEM_EVENT + a));
                 if (action != null)
                     m_dicActions.TryAdd(action.Identity, action);
             }

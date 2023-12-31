@@ -25,6 +25,8 @@ using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Comet.Network.Packets;
+using Comet.Shared;
+using Microsoft.Extensions.Logging;
 
 #endregion
 
@@ -40,25 +42,26 @@ namespace Comet.Network.Sockets
     public abstract class TcpServerEvents<TActor>
         where TActor : TcpServerActor
     {
-        protected delegate Task<bool> Exchange(TActor actor, byte[] packet);
+          private static readonly ILogger logger = LogFactory.CreateLogger<TcpServerEvents<TActor>>();
 
         /// <summary>
-        /// Invoked by the server listener's Accepting method to create a new server actor
-        /// around the accepted client socket. Gives the server an opportunity to initialize
-        /// any processing mechanisms or authentication routines for the client connection.
+        ///     Invoked by the server listener's Accepting method to create a new server actor
+        ///     around the accepted client socket. Gives the server an opportunity to initialize
+        ///     any processing mechanisms or authentication routines for the client connection.
         /// </summary>
         /// <param name="socket">Accepted client socket from the server socket</param>
-        /// <param name="buffer">Preallocated buffer from the server listener</param>
+        /// <param name="buffer">pre-allocated buffer from the server listener</param>
         /// <returns>A new instance of a TActor around the client socket</returns>
         protected abstract Task<TActor> AcceptedAsync(Socket socket, Memory<byte> buffer);
 
         /// <summary>
-        /// Invoked by the server listener's Exchanging method to process the client 
-        /// response from the Diffie-Hellman Key Exchange. At this point, the raw buffer 
-        /// from the client has been decrypted and is ready for direct processing.
+        ///     Invoked by the server listener's Exchanging method to process the client
+        ///     response from the Diffie-Hellman Key Exchange. At this point, the raw buffer
+        ///     from the client has been decrypted and is ready for direct processing.
         /// </summary>
         /// <param name="actor">Server actor that represents the remote client</param>
         /// <param name="buffer">Packet buffer to be processed</param>
+        /// <returns>True if the exchange was successful.</returns>
         protected virtual bool Exchanged(TActor actor, ReadOnlySpan<byte> buffer)
         {
             throw new NotImplementedException();
@@ -74,8 +77,20 @@ namespace Comet.Network.Sockets
         /// <param name="packet">Packet bytes to be processed</param>
         protected virtual void Received(TActor actor, ReadOnlySpan<byte> packet)
         {
-            Console.WriteLine("Received {0} bytes", packet.Length);
-            Console.WriteLine(PacketDump.Hex(packet));
+            logger.LogWarning("Received {0} bytes", packet.Length);
+            logger.LogWarning(PacketDump.Hex(packet));
+        }
+
+        public virtual void Send(TActor actor, ReadOnlySpan<byte> packet)
+        {
+            logger.LogWarning("Attempting to send {0} bytes", packet.Length);
+            logger.LogWarning(PacketDump.Hex(packet));
+        }
+
+        public virtual void Send(TActor actor, ReadOnlySpan<byte> packet, Func<Task> task)
+        {
+            logger.LogWarning("Attempting to send {0} bytes with task", packet.Length);
+            logger.LogWarning(PacketDump.Hex(packet));
         }
 
         /// <summary>

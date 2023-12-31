@@ -30,7 +30,7 @@ namespace Comet.Game.World.Managers
 {
     public sealed class EventManager
     {
-        private ConcurrentDictionary<uint, DbAction> m_dicActions = new ConcurrentDictionary<uint, DbAction>();
+        private static ConcurrentDictionary<uint, DbAction> m_dicActions = new ConcurrentDictionary<uint, DbAction>();
         private ConcurrentDictionary<uint, DbTask> m_dicTasks = new ConcurrentDictionary<uint, DbTask>();
 
         public async Task<bool> InitializeAsync()
@@ -123,7 +123,12 @@ namespace Comet.Game.World.Managers
             await Log.WriteLogAsync(LogLevel.Debug, $"All Actions has been reloaded. {m_dicActions.Count} in the server.");
         }
 
-        public DbAction GetAction(uint idAction)
+        // public DbAction GetAction(uint idAction)
+        // {
+        //     return m_dicActions.TryGetValue(idAction, out var result) ? result : null;
+        // }
+
+        public static DbAction GetAction(uint idAction)
         {
             return m_dicActions.TryGetValue(idAction, out var result) ? result : null;
         }

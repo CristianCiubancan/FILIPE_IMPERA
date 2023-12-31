@@ -23,10 +23,16 @@ namespace Comet.Game.Internal
         {
         }
 
-        public override Task<int> SendAsync(byte[] packet)
+        public override Task SendAsync(byte[] packet)
         {
-            Kernel.NetworkMonitor.Send(packet.Length);
-            return base.SendAsync(packet);
+            AccountClient.Instance.Send(this, packet);
+            return Task.CompletedTask;
+        }
+
+        public override Task SendAsync(byte[] packet, Func<Task> task)
+        {
+            AccountClient.Instance.Send(this, packet, task);
+            return Task.CompletedTask;
         }
     }
 }

@@ -42,6 +42,7 @@ using Comet.Game.World.Maps;
 using Comet.Shared;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Comet.Game.World.Managers;
 
 namespace Comet.Game.States
 {
@@ -80,7 +81,7 @@ namespace Comet.Game.States
                     deadLookCount = 0;
                 }
 
-                DbAction action = Kernel.EventManager.GetAction(idNext);
+                DbAction action = EventManager.GetAction(idNext);
                 if (action == null)
                 {
                     await Log.WriteLogAsync(LogLevel.Error, $"Error: invalid game action: {idNext}");

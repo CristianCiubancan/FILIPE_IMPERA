@@ -45,8 +45,10 @@ namespace Comet.Network.Packets
         where TClient : TcpServerActor
     {
         // Fields and Properties
-        protected readonly Task[] BackgroundTasks;
-        protected readonly Channel<Message>[] Channels;
+        protected readonly Task[] ReadBackgroundTasks;
+        protected readonly Channel<Message>[] ReadChannels;
+        protected readonly Task[] WriteBackgroundTasks;
+        protected readonly Channel<Message>[] WriteChannels;
         protected readonly Partition[] Partitions;
         protected readonly Func<TClient, byte[], Task> Process;
         protected CancellationToken CancelReads;
@@ -61,13 +63,16 @@ namespace Comet.Network.Packets
         public PacketProcessor(
             Func<TClient, byte[], Task> process,
             int count = 0)
+        
         {
             // Initialize the channels and tasks as parallel arrays
-            count = Math.Max(1, count == 0 ? Environment.ProcessorCount / 2 : count);
-            BackgroundTasks = new Task[count];
+            count = count == 0 ? Math.Max(1, Environment.ProcessorCount / 2) : count;
             CancelReads = new CancellationToken();
             CancelWrites = new CancellationToken();
-            Channels = new Channel<Message>[count];
+            ReadBackgroundTasks = new Task[count];
+            ReadChannels = new Channel<Message>[count];
+            WriteBackgroundTasks = new Task[count];
+            WriteChannels = new Channel<Message>[count];
             Partitions = new Partition[count];
             Process = process;
         }
@@ -79,14 +84,20 @@ namespace Comet.Network.Packets
         /// </summary>
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            for (int i = 0; i < BackgroundTasks.Length; i++)
+            for (var i = 0; i < ReadBackgroundTasks.Length; i++)
             {
-                Partitions[i] = new Partition {ID = (uint) i};
-                Channels[i] = Channel.CreateUnbounded<Message>();
-                BackgroundTasks[i] = DequeueAsync(Channels[i]);
+                Partitions[i] = new Partition { ID = (uint)i };
+                ReadChannels[i] = Channel.CreateUnbounded<Message>();
+                ReadBackgroundTasks[i] = DequeueReadAsync(ReadChannels[i]);
             }
 
-            return Task.WhenAll(BackgroundTasks);
+            for (var i = 0; i < WriteBackgroundTasks.Length; i++)
+            {
+                WriteChannels[i] = Channel.CreateUnbounded<Message>();
+                WriteBackgroundTasks[i] = DequeueWriteAsync(WriteChannels[i]);
+            }
+
+            return Task.WhenAll(ReadBackgroundTasks);
         }
 
         /// <summary>
@@ -96,14 +107,41 @@ namespace Comet.Network.Packets
         /// </summary>
         /// <param name="actor">Actor requesting packet processing</param>
         /// <param name="packet">Packet bytes to be processed</param>
-        public void Queue(TClient actor, byte[] packet)
+        public void QueueRead(TClient actor, byte[] packet)
         {
             if (!CancelWrites.IsCancellationRequested)
-                Channels[actor.Partition].Writer.TryWrite(new Message
+            {
+                ReadChannels[actor.Partition].Writer.TryWrite(new Message
                 {
                     Actor = actor,
                     Packet = packet
                 });
+            }
+        }
+
+        public void QueueWrite(TClient actor, byte[] packet)
+        {
+            if (!CancelWrites.IsCancellationRequested)
+            {
+                WriteChannels[actor.Partition].Writer.TryWrite(new Message
+                {
+                    Actor = actor,
+                    Packet = packet
+                });
+            }
+        }
+
+        public void QueueWrite(TClient actor, byte[] packet, Func<Task> task)
+        {
+            if (!CancelWrites.IsCancellationRequested)
+            {
+                WriteChannels[actor.Partition].Writer.TryWrite(new Message
+                {
+                    Actor = actor,
+                    Packet = packet,
+                    Action = task
+                });
+            }
         }
 
         /// <summary>
@@ -112,26 +150,34 @@ namespace Comet.Network.Packets
         ///     the packet processor's <see cref="Process" /> action will be called.
         /// </summary>
         /// <param name="channel">Channel to read messages from</param>
-        protected async Task DequeueAsync(Channel<Message> channel)
+        protected async Task DequeueReadAsync(Channel<Message> channel)
         {
             while (!CancelReads.IsCancellationRequested)
             {
-                var msg = await channel.Reader.ReadAsync(CancelReads);
+                Message msg = await channel.Reader.ReadAsync(CancelReads);
                 if (msg != null)
                 {
-                    try
+                    await Process(msg.Actor, msg.Packet).ConfigureAwait(false);
+                }
+            }
+        }
+
+        protected async Task DequeueWriteAsync(Channel<Message> channel)
+        {
+            while (!CancelReads.IsCancellationRequested)
+            {
+                Message msg = await channel.Reader.ReadAsync(CancelReads);
+                if (msg != null)
+                {
+                    await msg.Actor.InternalSendAsync(msg.Packet).ConfigureAwait(false);
+                    if (msg.Action != null)
                     {
-                        await Process(msg.Actor, msg.Packet).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = Log.WriteLogAsync(LogLevel.Socket, ex.ToString()).ConfigureAwait(false);
+                        await msg.Action().ConfigureAwait(false);
                     }
                 }
             }
         }
 
-        /// <summary>
         ///     Triggered when the application host is stopping the background task with a
         ///     graceful shutdown. Requests that writes into the channel stop, and then reads
         ///     from the channel stop.
@@ -139,8 +185,6 @@ namespace Comet.Network.Packets
         public new async Task StopAsync(CancellationToken cancellationToken)
         {
             CancelWrites = new CancellationToken(true);
-            foreach (var channel in Channels)
-                await channel.Reader.Completion;
             CancelReads = new CancellationToken(true);
             await base.StopAsync(cancellationToken);
         }
@@ -176,6 +220,7 @@ namespace Comet.Network.Packets
         {
             public TClient Actor;
             public byte[] Packet;
+            public Func<Task> Action { get; set; }
         }
 
         /// <summary>

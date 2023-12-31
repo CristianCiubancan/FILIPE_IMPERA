@@ -15,12 +15,14 @@ namespace Comet.Account
 {
     internal sealed class IntraServer : TcpServerListener<GameServer>
     {
+        public static IntraServer Instance { get; private set; }
         // Fields and Properties
         private readonly PacketProcessor<GameServer> Processor;
 
         public IntraServer(ServerConfiguration config)
             : base(100, 8192, false, false, "8a653a5d1e92b4e1db79".Length)
         {
+            Instance = this;
             Processor = new PacketProcessor<GameServer>(ProcessAsync);
             Processor.StartAsync(CancellationToken.None).ConfigureAwait(false);
         }
@@ -37,7 +39,7 @@ namespace Comet.Account
         {
             uint partition = Processor.SelectPartition();
             var client = new GameServer(socket, buffer, partition);
-            await Log.WriteLogAsync(LogLevel.Info, $"Accepting connection from server on [{client.IPAddress}].");
+            await Log.WriteLogAsync(LogLevel.Info, $"Accepting connection from server on [{client.IpAddress}].");
             return client;
 
         }
@@ -51,7 +53,17 @@ namespace Comet.Account
         /// <param name="packet">Packet bytes to be processed</param>
         protected override void Received(GameServer actor, ReadOnlySpan<byte> packet)
         {
-            Processor.Queue(actor, packet.ToArray());
+            Processor.QueueRead(actor, packet.ToArray());
+        }
+
+        public override void Send(GameServer actor, ReadOnlySpan<byte> packet)
+        {
+            Processor.QueueWrite(actor, packet.ToArray());
+        }
+
+        public override void Send(GameServer actor, ReadOnlySpan<byte> packet, Func<Task> task)
+        {
+            Processor.QueueWrite(actor, packet.ToArray(), task);
         }
 
         /// <summary>

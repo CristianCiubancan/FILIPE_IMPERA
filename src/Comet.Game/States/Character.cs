@@ -5995,7 +5995,7 @@ namespace Comet.Game.States
                     LoginTime = m_dbObject.LoginTime,
                     LogoutTime = m_dbObject.LogoutTime,
                     ServerVersion = $"[{Kernel.SERVER_VERSION}]{Kernel.Version}",
-                    IpAddress = Client.IPAddress,
+                    IpAddress = Client.IpAddress,
                     MacAddress = Client.MacAddress,
                     OnlineTime = (uint) (m_dbObject.LogoutTime - m_dbObject.LoginTime).TotalSeconds
                 });

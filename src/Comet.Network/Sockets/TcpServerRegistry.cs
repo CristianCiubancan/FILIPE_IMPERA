@@ -40,18 +40,17 @@ namespace Comet.Network.Sockets
     /// </summary>
     public sealed class TcpServerRegistry : IHostedService, IDisposable
     {
-        private readonly int BanMinutes;
-        private readonly int MaxActiveConnections;
-
-        private readonly int MaxAttemptsPerMinute;
+        private readonly int mBanMinutes;
+        private readonly int mMaxActiveConnections;
+        private readonly int mMaxAttemptsPerMinute;
 
         // Fields and properties
-        private Dictionary<string, int> Active;
-        private object ActiveMutex;
-        private Dictionary<string, int> Attempts;
-        private object AttemptsMutex;
-        private ConcurrentDictionary<string, DateTime> Blocks;
-        private Timer PurgeTimer;
+        private Dictionary<string, int> mActive;
+        private object mActiveMutex;
+        private Dictionary<string, int> mAttempts;
+        private object mAttemptsMutex;
+        private readonly ConcurrentDictionary<string, DateTime> mBlocks;
+        private Timer mPurgeTimer;
 
         /// <summary>
         ///     Instantiates a new instance of <see cref="TcpServerRegistry" /> with initialized
@@ -63,24 +62,24 @@ namespace Comet.Network.Sockets
         /// <param name="maxAttemptsPerMinute">Maximum connection attempts per minute</param>
         public TcpServerRegistry(
             int banMinutes = 15,
-            int maxActiveConn = 10,
-            int maxAttemptsPerMinute = 15)
+            int maxActiveConn = int.MaxValue,
+            int maxAttemptsPerMinute = int.MaxValue)
         {
-            Active = new Dictionary<string, int>();
-            Attempts = new Dictionary<string, int>();
-            Blocks = new ConcurrentDictionary<string, DateTime>();
+            mActive = new Dictionary<string, int>();
+            mAttempts = new Dictionary<string, int>();
+            mBlocks = new ConcurrentDictionary<string, DateTime>();
 
-            ActiveMutex = new object();
-            AttemptsMutex = new object();
-            BanMinutes = banMinutes;
-            MaxActiveConnections = maxActiveConn;
-            MaxAttemptsPerMinute = maxAttemptsPerMinute;
+            mActiveMutex = new object();
+            mAttemptsMutex = new object();
+            mBanMinutes = banMinutes;
+            mMaxActiveConnections = maxActiveConn;
+            mMaxAttemptsPerMinute = maxAttemptsPerMinute;
         }
 
         /// <summary>Disposes of the purge timer.</summary>
         public void Dispose()
         {
-            PurgeTimer?.Dispose();
+            mPurgeTimer?.Dispose();
         }
 
         /// <summary>
@@ -90,8 +89,8 @@ namespace Comet.Network.Sockets
         /// </summary>
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            PurgeTimer = new Timer(
-                this.TimedPurgeJob,
+            mPurgeTimer = new Timer(
+                TimedPurgeJob,
                 null,
                 TimeSpan.Zero,
                 TimeSpan.FromSeconds(60));
@@ -102,7 +101,7 @@ namespace Comet.Network.Sockets
         /// <summary>Stops cleaning attempt counters and stop checking for bans.</summary>
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            PurgeTimer?.Change(Timeout.Infinite, 0);
+            mPurgeTimer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
 
@@ -114,15 +113,25 @@ namespace Comet.Network.Sockets
         /// </summary>
         /// <param name="ip">IPv4 address of the client</param>
         /// <returns>True if the connection is allowed.</returns>
-        public bool AddActiveClient(string ip)
+        public BlockReason AddActiveClient(string ip)
         {
             // Check for blocked IP addresses
-            if (Blocks.ContainsKey(ip)) return false;
+            if (mBlocks.ContainsKey(ip))
+            {
+                return BlockReason.MaxConnectionsAttempts;
+            }
 
             // Check if the client should be blocked for frequent connections and then 
             // increment the active connections counter if the previous operation succeeded.
-            return IncrementCounter(ip, MaxAttemptsPerMinute, ref AttemptsMutex, ref Attempts)
-                   && IncrementCounter(ip, MaxActiveConnections, ref ActiveMutex, ref Active);
+            if (!IncrementCounter(ip, mMaxAttemptsPerMinute, true, ref mAttemptsMutex, ref mAttempts))
+            {
+                return BlockReason.MaxConnectionsAttempts;
+            }
+            if (!IncrementCounter(ip, mMaxActiveConnections, false, ref mActiveMutex, ref mActive))
+            {
+                return BlockReason.MaxActiveConnections;
+            }
+            return BlockReason.None;
         }
 
         /// <summary>
@@ -138,6 +147,7 @@ namespace Comet.Network.Sockets
         public bool IncrementCounter(
             string ip,
             int ceiling,
+            bool block,
             ref object mutex,
             ref Dictionary<string, int> collection)
         {
@@ -146,9 +156,12 @@ namespace Comet.Network.Sockets
                 if (collection.TryGetValue(ip, out int count))
                 {
                     count++;
-                    if (count > MaxActiveConnections)
+                    if (count > ceiling)
                     {
-                        Blocks.TryAdd(ip, DateTime.Now.AddMinutes(BanMinutes));
+                        if (block)
+                        {
+                            mBlocks.TryAdd(ip, DateTime.Now.AddMinutes(mBanMinutes));
+                        }
                         return false;
                     }
 
@@ -168,15 +181,19 @@ namespace Comet.Network.Sockets
         public void RemoveActiveClient(string ip)
         {
             // Decrement active connections count
-            lock (ActiveMutex)
+            lock (mActiveMutex)
             {
-                if (Active.TryGetValue(ip, out int attempts))
+                if (mActive.TryGetValue(ip, out int attempts))
                 {
                     attempts--;
                     if (attempts == 0)
-                        Active.Remove(ip);
+                    {
+                        mActive.Remove(ip);
+                    }
                     else
-                        Active[ip] = attempts;
+                    {
+                        mActive[ip] = attempts;
+                    }
                 }
             }
         }
@@ -188,15 +205,26 @@ namespace Comet.Network.Sockets
         /// </summary>
         public void TimedPurgeJob(object state)
         {
-            lock (AttemptsMutex)
+            lock (mAttemptsMutex)
             {
-                Attempts.Clear();
+                mAttempts.Clear();
             }
 
             DateTime now = DateTime.Now;
-            foreach (var blockedConnection in Blocks)
+            foreach (KeyValuePair<string, DateTime> blockedConnection in mBlocks)
+            {
                 if (blockedConnection.Value < now)
-                    Blocks.TryRemove(blockedConnection.Key, out DateTime _);
+                {
+                    mBlocks.TryRemove(blockedConnection.Key, out DateTime _);
+                }
+            }
+        }
+
+        public enum BlockReason
+        {
+            None,
+            MaxActiveConnections,
+            MaxConnectionsAttempts
         }
     }
 }

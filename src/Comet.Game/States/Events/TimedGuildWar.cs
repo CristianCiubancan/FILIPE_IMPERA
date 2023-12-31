@@ -260,7 +260,7 @@ namespace Comet.Game.States.Events
                             Kills = 0,
                             Deaths = 0,
                             Points = 0,
-                            IpAddress = user.Client.IPAddress
+                            IpAddress = user.Client.IpAddress
                         };
                         synData.Players.Add(userData.Identity, userData);
                     }
@@ -349,7 +349,7 @@ namespace Comet.Game.States.Events
                 Kills = 0,
                 Deaths = 0,
                 Points = 0,
-                IpAddress = sender.Client.IPAddress
+                IpAddress = sender.Client.IpAddress
             };
             synData.Players.TryAdd(data.Identity, data);
             return data;

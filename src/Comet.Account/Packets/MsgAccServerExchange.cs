@@ -37,7 +37,7 @@ namespace Comet.Account.Packets
                 return;
             }
 
-            if (!client.IPAddress.Equals(realm.RpcIPAddress))
+            if (!client.IpAddress.Equals(realm.RpcIPAddress))
             {
                 await client.SendAsync(new MsgAccServerAction
                 {

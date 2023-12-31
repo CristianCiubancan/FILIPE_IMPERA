@@ -1,4 +1,4 @@
-﻿namespace Canyon.Database
+﻿namespace Comet.Database
 {
     /// <summary>
     ///     Encapsulates database configuration for Entity Framework.

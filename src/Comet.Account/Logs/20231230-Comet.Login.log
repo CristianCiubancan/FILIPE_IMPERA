@@ -1,0 +1,114 @@
+﻿[145645.234][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[145645.250][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[145645.252][0005][Information] - Quartz Scheduler created
+[145645.254][0005][Information] - RAMJobStore initialized.
+[145645.255][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[145645.257][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[145645.260][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[145645.265][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[145955.840][0007][Information] - Default Quartz.NET properties loaded from embedded resource file
+[145955.856][0007][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[145955.858][0007][Information] - Quartz Scheduler created
+[145955.860][0007][Information] - RAMJobStore initialized.
+[145955.863][0007][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[145955.864][0007][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[145955.866][0007][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[145955.870][0007][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[150216.200][0007][Information] - Default Quartz.NET properties loaded from embedded resource file
+[150216.216][0007][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[150216.218][0007][Information] - Quartz Scheduler created
+[150216.219][0007][Information] - RAMJobStore initialized.
+[150216.221][0007][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[150216.222][0007][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[150216.223][0007][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[150216.228][0007][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[150430.796][0007][Information] - Default Quartz.NET properties loaded from embedded resource file
+[150430.814][0007][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[150430.815][0007][Information] - Quartz Scheduler created
+[150430.817][0007][Information] - RAMJobStore initialized.
+[150430.819][0007][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[150430.821][0007][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[150430.822][0007][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[150430.827][0007][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[150536.007][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[150536.023][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[150536.025][0005][Information] - Quartz Scheduler created
+[150536.026][0005][Information] - RAMJobStore initialized.
+[150536.029][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[150536.030][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[150536.031][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[150536.036][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[150634.792][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[150634.808][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[150634.809][0005][Information] - Quartz Scheduler created
+[150634.811][0005][Information] - RAMJobStore initialized.
+[150634.813][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[150634.815][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[150634.816][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[150634.821][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[151147.625][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[151147.643][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[151147.645][0005][Information] - Quartz Scheduler created
+[151147.647][0005][Information] - RAMJobStore initialized.
+[151147.649][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[151147.650][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[151147.652][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[151147.657][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[151157.349][0007][Information] - Default Quartz.NET properties loaded from embedded resource file
+[151157.366][0007][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[151157.368][0007][Information] - Quartz Scheduler created
+[151157.369][0007][Information] - RAMJobStore initialized.
+[151157.371][0007][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[151157.372][0007][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[151157.374][0007][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[151157.379][0007][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[152455.622][0007][Information] - Listening on 0.0.0.0:9865
+[152455.629][0005][Information] - Listening on 192.168.0.106:9958
+[152455.684][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[152455.700][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[152455.702][0005][Information] - Quartz Scheduler created
+[152455.704][0005][Information] - RAMJobStore initialized.
+[152455.706][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[152455.707][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[152455.709][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[152455.713][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[152553.862][0007][Information] - Listening on 0.0.0.0:9865
+[152553.870][0008][Information] - Listening on 192.168.0.106:9958
+[152553.943][0008][Information] - Default Quartz.NET properties loaded from embedded resource file
+[152553.963][0008][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[152553.965][0008][Information] - Quartz Scheduler created
+[152553.968][0008][Information] - RAMJobStore initialized.
+[152553.971][0008][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[152553.972][0008][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[152553.974][0008][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[152553.981][0008][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[153832.248][0011][Information] - Listening on 0.0.0.0:9865
+[153832.256][0005][Information] - Listening on 192.168.0.106:9958
+[153832.308][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[153832.324][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[153832.325][0005][Information] - Quartz Scheduler created
+[153832.327][0005][Information] - RAMJobStore initialized.
+[153832.328][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[153832.329][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[153832.332][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[153832.337][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[154154.868][0007][Information] - Listening on 0.0.0.0:9865
+[154154.874][0005][Information] - Listening on 192.168.0.106:9958
+[154154.925][0005][Information] - Default Quartz.NET properties loaded from embedded resource file
+[154154.946][0005][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[154154.948][0005][Information] - Quartz Scheduler created
+[154154.950][0005][Information] - RAMJobStore initialized.
+[154154.952][0005][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[154154.953][0005][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[154154.954][0005][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[154154.958][0005][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.
+[160905.572][0007][Information] - Listening on 0.0.0.0:9865
+[160905.580][0011][Information] - Listening on 192.168.0.106:9958
+[160905.643][0011][Information] - Default Quartz.NET properties loaded from embedded resource file
+[160905.678][0011][Information] - Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl
+[160905.680][0011][Information] - Quartz Scheduler created
+[160905.681][0011][Information] - RAMJobStore initialized.
+[160905.683][0011][Information] - Quartz Scheduler 3.6.2.0 - 'DefaultQuartzScheduler' with instanceId 'NON_CLUSTERED' initialized
+[160905.685][0011][Information] - Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10
+[160905.687][0011][Information] - Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False
+[160905.695][0011][Information] - Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED started.

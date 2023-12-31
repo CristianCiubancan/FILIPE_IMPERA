@@ -126,7 +126,7 @@ namespace Comet.Account.Packets
                 AccountID = client.Account.AccountID,
                 AuthorityID = client.Account.AuthorityID,
                 AuthorityName = client.Account.Authority.AuthorityName,
-                IPAddress = client.IPAddress,
+                IPAddress = client.IpAddress,
                 VipLevel = client.Account.VipLevel
             });
         }
